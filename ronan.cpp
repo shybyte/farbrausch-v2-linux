@@ -1,4 +1,4 @@
-// ronan heißt in wirklichkeit lisa. ich war nur zu faul zum renamen.
+// ronan heiï¿½t in wirklichkeit lisa. ich war nur zu faul zum renamen.
 
 // !DHAX_ !kwIH_k !br4AH_UHn !fAA_ks !jAH_mps !OW!vE_R !DHAX_ !lEY!zIY_ !dAA_g 
 
@@ -12,89 +12,19 @@
 
 static sInt sFtol (const float f)
 {
-  __asm 
-  {
-    fld f
-    push eax
-    fistp dword ptr [esp]
-    pop eax
-  }
+	return (int) f;
 }
+
 
 
 static sF64 sFPow(sF64 a,sF64 b)
 {
-  // faster pow based on code by agner fog
-  __asm
-  {
-    fld   qword ptr [b];
-    fld   qword ptr [a];
-
-    ftst;
-    fstsw ax;
-    sahf;
-    jz    zero;
-
-    fyl2x;
-    fist  dword ptr [a];
-    sub   esp, 12;
-    mov   dword ptr [esp],0;
-    mov   dword ptr [esp+4],0x80000000;
-    fisub dword ptr [a];
-    mov   eax, dword ptr [a];
-    add   eax, 0x3fff;
-    mov   [esp+8], eax;
-    jle   underflow;
-    cmp   eax, 0x8000;
-    jge   overflow;
-    f2xm1;
-    fld1;
-    fadd;
-    fld   tbyte ptr [esp];
-    add   esp, 12;
-    fmul;
-    jmp   end;
-
-underflow:
-    fstp  st;
-    fldz;
-    add   esp, 12;
-    jmp   end;
-
-overflow:
-    push  0x7f800000;
-    fstp  st;
-    fld   dword ptr [esp];
-    add   esp, 16;
-    jmp   end;
-
-zero:
-    fstp  st(1);
-
-end:
-  }
+	return pow(a,b);
 }
 
 static sF64 sFExp(sF64 f)
 {
-	__asm
-	{
-		fld		qword ptr [f];
-		fldl2e;
-		fmulp	st(1), st;
-
-		fld1;
-		fld		st(1);
-		fprem;
-		f2xm1;
-		faddp	st(1), st;
-		fscale;
-
-    fstp  st(1);
-		fstp	qword ptr [f];
-	}
-
-	return f;
+	return exp(f);
 }
 
 #ifndef sCopyMem
@@ -574,15 +504,6 @@ extern "C" void __stdcall ronanCBProcess(syWRonan *wsptr,sF32 *buf, sU32 len)
 		buf[2*i]=buf[2*i+1]=out;
 	}
 
-}
-
-extern "C" extern void* __stdcall synthGetSpeechMem(void *a_pthis);
-
-extern "C" void __stdcall synthSetLyrics(void *a_pthis,const char **a_ptr)
-{
-  syWRonan *wsptr=(syWRonan*)synthGetSpeechMem(a_pthis);
-	for (sInt i=0; i<64; i++) wsptr->texts[i]=a_ptr[i];
-	wsptr->baseptr=wsptr->ptr=wsptr->texts[0];
 }
 
 #endif
